@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# ============================================================
+# copypath —— 右键复制文件/文件夹的绝对路径（Nautilus 右键脚本）
+#
+# 用法: 文件管理器里右键文件/文件夹 → 脚本 → Copy Path
+#       多选 = 逐行复制多个路径
+#
+# 安装: ./copypath install      卸载: ./copypath uninstall
+# 迁移: 拷贝本文件到新机器，重跑 ./copypath install
+# 依赖: xclip  （sudo apt install xclip）
+#
+# 原理: Nautilus 运行脚本时把选中路径放进环境变量
+#       NAUTILUS_SCRIPT_SELECTED_FILE_PATHS，读出写入剪贴板即可。
+# 安装只是在 ~/.local/share/nautilus/scripts/ 建一个硬链接
+# （Nautilus 的脚本扫描不认符号链接），不修改任何其他文件。
+# ============================================================
+
+NAU_DIR="$HOME/.local/share/nautilus/scripts"
+
+case "${1:-}" in
+  install)
+    mkdir -p "$NAU_DIR"
+    rm -f "$NAU_DIR/Copy Path"
+    SELF=$(readlink -f "${BASH_SOURCE[0]}")
+    ln "$SELF" "$NAU_DIR/Copy Path" || { echo "硬链接失败，退回复制"; cp "$SELF" "$NAU_DIR/Copy Path"; }
+    chmod +x "$NAU_DIR/Copy Path"
+    command -v xclip >/dev/null 2>&1 || echo "提示: 还没装 xclip，执行 sudo apt install xclip"
+    echo "安装完成: nautilus -q 后，右键文件 → 脚本 → Copy Path"
+    ;;
+  uninstall)
+    rm -f "$NAU_DIR/Copy Path"
+    echo "已卸载（本文件保留，整个目录可直接删除）"
+    ;;
+  *)
+    if command -v xclip >/dev/null 2>&1; then
+      printf '%s' "$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS" | xclip -selection clipboard
+    else
+      echo "缺少 xclip，先执行: sudo apt install xclip" >&2
+    fi
+    ;;
+esac
