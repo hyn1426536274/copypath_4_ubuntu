@@ -11,6 +11,8 @@
 ## 安装 / 卸载
 
 ```bash
+git clone git@github.com:hyn1426536274/copypath_4_ubuntu.git
+cd ./copypath_4_ubuntu
 sudo apt install xclip # 依赖
 ./copypath install     # 在 ~/.local/share/nautilus/scripts/ 建硬链接
 nautilus -q            # 重启文件管理器，右键出现"脚本 → Copy Path"
